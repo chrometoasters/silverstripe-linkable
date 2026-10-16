@@ -2,12 +2,13 @@
 
 namespace Sheadawson\Linkable\Extensions;
 
+use Sheadawson\Linkable\Models\Link;
+use SilverStripe\Core\Extension;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\TreeDropdownField;
 use SilverStripe\Forms\TextField;
 use UncleCheese\DisplayLogic\Forms\Wrapper;
-use SilverStripe\ORM\DataExtension;
 
 /**
  * An extension to add site tree option to linkable field.
@@ -16,8 +17,9 @@ use SilverStripe\ORM\DataExtension;
  * @license BSD License http://www.silverstripe.org/bsd-license
  * @author  <mohamed.alsharaf@chrometoaster.com>
  * @package Sheadawson\Linkable\Extensions
+ * @extends Extension<Link>
  */
-class LinkableSiteTreeExtension extends DataExtension
+class LinkableSiteTreeExtension extends Extension
 {
     /**
      * @var array
@@ -81,7 +83,9 @@ class LinkableSiteTreeExtension extends DataExtension
 //        $fields->insertAfter('Type', $siteTreeField);
 
         // Display warning if the selected page is deleted or unpublished
-        if ($this->owner->SiteTreeID && !$this->owner->SiteTree()->isPublished()) {
+        $owner = $this->getOwner();
+
+        if ($owner->SiteTreeID && !$owner->SiteTree()->isPublished()) {
             $fields
                 ->dataFieldByName('SiteTreeID')
                 ->setRightTitle(

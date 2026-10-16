@@ -12,10 +12,12 @@ use SilverStripe\Forms\TextareaField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\ORM\DataObjectInterface;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Security\SecurityToken;
 use SilverStripe\Core\Convert;
 use SilverStripe\Forms\FormField;
+use Throwable;
 
 /**
  * Class EmbeddedObjectField
@@ -56,10 +58,11 @@ class EmbeddedObjectField extends FormField
     {
         if ($value instanceof EmbeddedObject) {
             $this->object = $value;
-            parent::setValue($value->toMap());
+
+            return parent::setValue($value->toMap(), $data);
         }
 
-        parent::setValue($value);
+        return parent::setValue($value, $data);
     }
 
     /**
@@ -115,7 +118,7 @@ class EmbeddedObjectField extends FormField
                     $properties['EmbedHTML'] = HiddenField::create($this->getName() . '[embedhtml]', '');
                 }
 
-                $properties['ObjectDescription'] = TextAreaField::create(
+                $properties['ObjectDescription'] = TextareaField::create(
                     $this->getName() . '[description]', _t('Linkable.DESCRIPTION', 'Description')
                 );
                 $properties['ExtraClass'] = TextField::create(
@@ -134,7 +137,7 @@ class EmbeddedObjectField extends FormField
 
                 if ($this->object->ThumbURL) {
                     $properties['ThumbImage'] = LiteralField::create(
-                        $this->getName(), '<img src="' . $this->object->ThumbURL . '" />'
+                        $this->getName(), '<img src="' . Convert::raw2att($this->object->ThumbURL) . '" />'
                     );
                 }
             }
@@ -153,7 +156,7 @@ class EmbeddedObjectField extends FormField
      */
     public function saveInto(DataObjectInterface $record)
     {
-        $val = $this->Value();
+        $val = $this->getValue();
         $field = $this->getName() . 'ID';
 
         if (!strlen($val['sourceurl'] ?? '') && $this->object) {
@@ -193,8 +196,17 @@ class EmbeddedObjectField extends FormField
         $url = $request->postVar('URL') ?? '';
 
         if (strlen($url)) {
-            $embed = new Embed();
-            $info = $embed->get($url);
+            // embed/embed 4 never returns a falsy result: it throws on network errors and extracts
+            // from error pages, so both count as a failed lookup
+            try {
+                $info = Injector::inst()->get(Embed::class)->get($url);
+
+                if ($info->getResponse()->getStatusCode() >= 400) {
+                    $info = null;
+                }
+            } catch (Throwable $e) {
+                $info = null;
+            }
 
             if ($info) {
                 $object = EmbeddedObject::create();

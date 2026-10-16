@@ -2,6 +2,8 @@
 
 namespace Sheadawson\Linkable\Forms;
 
+use SilverStripe\Core\Validation\ValidationException;
+use SilverStripe\Core\Validation\ValidationResult;
 use Sheadawson\Linkable\Models\Link;
 use SilverStripe\ORM\FieldType\DBHTMLText;
 use SilverStripe\View\Requirements;
@@ -10,7 +12,6 @@ use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\HiddenField;
-use SilverStripe\ORM\ValidationException;
 use SilverStripe\Control\Controller;
 use SilverStripe\Forms\TextField;
 
@@ -56,7 +57,7 @@ class LinkField extends TextField
     {
         Requirements::javascript('sheadawson/silverstripe-linkable: client/dist/js/bundle.js');
 
-        return parent::Field();
+        return parent::Field($properties);
     }
 
     /**
@@ -78,20 +79,21 @@ class LinkField extends TextField
         }
 
         $link = null;
-        if ($linkID = (int)$this->request->getVar('LinkID')) {
+        if ($linkID = (int)$this->getRequest()->getVar('LinkID')) {
             $link = Link::get()->byID($linkID);
         }
 
-        $link = $link ? $link : singleton(Link::class);
+        // A fresh record rather than the Injector singleton, so the allowed types set below
+        // do not leak into other fields that share the singleton in the same request
+        $isNew = !$link;
+        $link = $link ? $link : Link::create();
         $link->setAllowedTypes($this->getAllowedTypes());
 
         /** @var $fields FieldList */
         $fields = $link->getCMSFields();
 
-        $title = $link ? _t('Linkable.EDITLINK', 'Edit Link') : _t('Linkable.ADDLINK', 'Add Link');
-        $fields->insertBefore(
-            _t('Linkable.TITLE', 'Title'), HeaderField::create('LinkHeader', $title)
-        );
+        $title = $isNew ? _t('Linkable.ADDLINK', 'Add Link') : _t('Linkable.EDITLINK', 'Edit Link');
+        $fields->insertBefore('Title', HeaderField::create('LinkHeader', $title));
 
         $actions = FieldList::create($action);
         $form = Form::create($this, 'LinkForm', $fields, $actions);
@@ -101,7 +103,7 @@ class LinkField extends TextField
             $fields->push(HiddenField::create('LinkID', 'LinkID', $link->ID));
         }
 
-        $this->owner->extend('updateLinkForm', $form);
+        $this->extend('updateLinkForm', $form);
 
         return $form;
     }
@@ -122,7 +124,7 @@ class LinkField extends TextField
         try {
             $link->write();
         } catch (ValidationException $e) {
-            $form->sessionMessage($e->getMessage(), 'bad');
+            $form->sessionMessage($e->getMessage(), ValidationResult::TYPE_ERROR);
 
             return $form->forTemplate();
         }
@@ -151,14 +153,14 @@ class LinkField extends TextField
      */
     public function getLinkObject()
     {
-        $requestID = Controller::curr()->request->requestVar('LinkID');
+        $requestID = Controller::curr()->getRequest()->requestVar('LinkID');
 
-        if ($requestID == '0' && !$this->Value()) {
+        if ($requestID == '0' && !$this->getValue()) {
             return null;
         }
 
         if (!$this->linkObject) {
-            $id = $this->Value() ? $this->Value() : $requestID;
+            $id = $this->getValue() ? $this->getValue() : $requestID;
 
             if ((int)$id) {
                 $this->linkObject = Link::get()->byID($id);

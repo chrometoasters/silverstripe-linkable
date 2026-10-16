@@ -1,7 +1,7 @@
 {
     "name": "sheadawson/silverstripe-linkable",
     "type": "silverstripe-vendormodule",
-    "description": "A couple of handy form fields and objects for managing external and internal links on DataObjects",
+    "description": "A couple of handy form fields and objects for managing external and internal links on DataObjects (Chrometoaster fork for Silverstripe CMS 6)",
     "license": "BSD-3-Clause",
     "keywords": [
         "silverstripe",
@@ -20,29 +20,37 @@
         }
     ],
     "support": {
-        "issues": "http://github.com/sheadawson/silverstripe-linkable/issues"
+        "issues": "https://github.com/chrometoasters/silverstripe-linkable/issues"
     },
     "require": {
-        "silverstripe/framework": "^4.0 || ^5.0",
-        "unclecheese/display-logic": "*",
-        "embed/embed": "^4.0"
+        "php": "^8.3",
+        "silverstripe/framework": "^6",
+        "unclecheese/display-logic": "^4",
+        "embed/embed": "^4.4"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5.7"
+        "silverstripe/recipe-testing": "^4",
+        "silverstripe/cms": "^6"
     },
     "autoload": {
         "psr-4": {
-            "Sheadawson\\Linkable\\": "src/",
+            "Sheadawson\\Linkable\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
             "Sheadawson\\Linkable\\Tests\\": "tests/"
         }
     },
     "suggest": {
-        "silverstripe/cms": "To allow for a linking of the SiteTree data object."
+        "silverstripe/cms": "To allow for a linking of the SiteTree data object.",
+        "silverstripe/admin": "The LinkField and EmbeddedObjectField dialogs use the jQuery, jQuery UI and entwine libraries bundled with the CMS admin."
     },
     "extra": {
         "installer-name": "linkable",
         "branch-alias": {
-            "dev-master": "2.0.x-dev"
+            "dev-ss6": "3.0.x-dev",
+            "dev-master": "3.0.x-dev"
         },
         "expose": [
             "client"
