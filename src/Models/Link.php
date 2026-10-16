@@ -11,7 +11,6 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\TreeDropdownField;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\FieldType\DBHTMLText;
 use UncleCheese\DisplayLogic\Forms\Wrapper;
 
 /**
@@ -327,7 +326,10 @@ class Link extends DataObject
     /**
      * Renders an HTML anchor tag for this link
      *
-     * @return DBHTMLText|string
+     * The return type is string on CMS 6 (ModelData::forTemplate()); the rendered DBHTMLText is cast,
+     * and templates output the result unescaped as before.
+     *
+     * @return string
      */
     public function forTemplate(): string
     {
@@ -341,7 +343,7 @@ class Link extends DataObject
             // Legacy. Recommended to use templating above.
             $this->extend('updateLinkTemplate', $this, $link);
 
-            return $link;
+            return (string) $link;
         }
 
         return '';
@@ -460,10 +462,15 @@ class Link extends DataObject
     /**
      * Validate
      *
-     * @return \SilverStripe\Core\Validation\ValidationResult
+     * Starts from DataObject::validate(), which on CMS 6 validates every DBField (for example the
+     * Varchar(255) length of URL) and calls the updateValidate extension hook, then adds the
+     * link type checks.
+     *
+     * @return ValidationResult
      */
     public function validate(): ValidationResult
     {
+        $result = parent::validate();
         $valid = true;
         $message = null;
         $type = $this->Type;
@@ -541,13 +548,9 @@ class Link extends DataObject
             }
         }
 
-        $result = ValidationResult::create();
-
         if (!$valid) {
             $result->addError($message);
         }
-
-        $this->extend('updateValidate', $result);
 
         return $result;
     }

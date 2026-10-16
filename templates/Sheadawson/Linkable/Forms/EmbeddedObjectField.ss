@@ -6,7 +6,7 @@
 	</span>
 <% else %>
 	<div class="embeddedObjectUrl">
-		<input type='button' class="embeddedObjectLoad ss-ui-button ss-ui-button-small" data-href="$Link(update)" value='<% _t('Linkable.INSPECT','Inspect') %>' />
+		<input type='button' class="embeddedObjectLoad ss-ui-button ss-ui-button-small" data-href="$Link(update)" value='<%t Linkable.INSPECT 'Inspect' %>' />
 		$SourceURL.SmallFieldHolder
 	</div>
 
