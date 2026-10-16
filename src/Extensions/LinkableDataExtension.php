@@ -2,16 +2,17 @@
 
 namespace Sheadawson\Linkable\Extensions;
 
+use SilverStripe\Core\Extension;
 use Sheadawson\Linkable\Models\Link;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\ORM\DataExtension;
 
 /**
  * Class LinkableDataExtension
  * @author Ryan
  * @package Sheadawson\Linkable
+ * @extends Extension<static>
  */
-class LinkableDataExtension extends DataExtension
+class LinkableDataExtension extends Extension
 {
     public function onBeforeDuplicate()
     {

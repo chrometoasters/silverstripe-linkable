@@ -2,6 +2,7 @@
 
 namespace Sheadawson\Linkable\Forms;
 
+use SilverStripe\Core\Validation\ValidationException;
 use Sheadawson\Linkable\Models\Link;
 use SilverStripe\ORM\FieldType\DBHTMLText;
 use SilverStripe\View\Requirements;
@@ -10,7 +11,6 @@ use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\HiddenField;
-use SilverStripe\ORM\ValidationException;
 use SilverStripe\Control\Controller;
 use SilverStripe\Forms\TextField;
 

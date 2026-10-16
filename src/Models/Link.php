@@ -2,6 +2,7 @@
 
 namespace Sheadawson\Linkable\Models;
 
+use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\Assets\File;
 use SilverStripe\Core\Convert;
 use SilverStripe\Forms\CheckboxField;
@@ -11,7 +12,6 @@ use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\TreeDropdownField;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBHTMLText;
-use SilverStripe\ORM\ValidationResult;
 use UncleCheese\DisplayLogic\Forms\Wrapper;
 
 /**
@@ -329,7 +329,7 @@ class Link extends DataObject
      *
      * @return DBHTMLText|string
      */
-    public function forTemplate()
+    public function forTemplate(): string
     {
         if ($this->LinkURL) {
             $link = $this->renderWith([
@@ -460,9 +460,9 @@ class Link extends DataObject
     /**
      * Validate
      *
-     * @return ValidationResult
+     * @return \SilverStripe\Core\Validation\ValidationResult
      */
-    public function validate()
+    public function validate(): ValidationResult
     {
         $valid = true;
         $message = null;
