@@ -6,10 +6,33 @@ This module is no longer maintained. Please checkout the following excellent alt
 * [gorriecoe/silverstripe-linkfield](https://github.com/gorriecoe/silverstripe-linkfield)
 * [silverstripe-embed](https://github.com/gorriecoe/silverstripe-embed)
 
+## Chrometoaster fork: Silverstripe CMS 6
+
+The `ss6` branch of [chrometoasters/silverstripe-linkable](https://github.com/chrometoasters/silverstripe-linkable)
+carries this module to Silverstripe CMS 6 (branch alias `3.0.x-dev`). It keeps the package name and the
+`Sheadawson\Linkable` namespace, so a project swaps the source with a repository entry and changes no code:
+
+```json
+"repositories": [
+    {"type": "vcs", "url": "https://github.com/chrometoasters/silverstripe-linkable"}
+],
+"require": {
+    "sheadawson/silverstripe-linkable": "^3.0@dev"
+}
+```
+
+Upstream 2.1.x (CMS 4 and 5) is unchanged on `master`. Run the tests from a project that requires this branch:
+
+```
+SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit vendor/sheadawson/silverstripe-linkable/tests
+```
+
 ## Requirements
 
-* SilverStripe 4.x
-* [Display Logic](https://github.com/unclecheese/silverstripe-display-logic)
+* Silverstripe CMS 6 (`ss6` branch); SilverStripe 4.x and 5.x on 2.x
+* [Display Logic](https://github.com/unclecheese/silverstripe-display-logic) 4 on CMS 6
+* [embed/embed](https://github.com/oscarotero/Embed) 4 for EmbeddedObject
+* silverstripe/admin for the LinkField and EmbeddedObjectField dialogs
 
 See 1.x branch/releases for SilverStripe 3.x support
 
