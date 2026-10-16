@@ -1,0 +1,36 @@
+SilverStripe\Assets\File:
+  brochure:
+    Title: Brochure
+    FileFilename: brochure.pdf
+    FileHash: 55b443b60176235ef09801153cca4e6da7494a0c
+    Name: brochure.pdf
+
+Sheadawson\Linkable\Tests\Stubs\LinkableTestPage:
+  about:
+    Title: About us
+    MenuTitle: About
+    URLSegment: about-us
+
+Sheadawson\Linkable\Models\Link:
+  url:
+    Title: Example
+    Type: URL
+    URL: 'https://example.com/path?a=1&b=2'
+    OpenInNewWindow: true
+  email:
+    Title: Email us
+    Type: Email
+    Email: hello@example.com
+  phone:
+    Title: Call us
+    Type: Phone
+    Phone: '+64 4 123 4567'
+  file:
+    Title: Download
+    Type: File
+    File: =>SilverStripe\Assets\File.brochure
+  page:
+    Title: About
+    Type: SiteTree
+    SiteTree: =>Sheadawson\Linkable\Tests\Stubs\LinkableTestPage.about
+    Anchor: '#team'
