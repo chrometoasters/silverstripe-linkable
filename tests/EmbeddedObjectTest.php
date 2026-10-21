@@ -4,6 +4,7 @@ namespace Sheadawson\Linkable\Tests;
 
 use Embed\Embed;
 use Embed\Http\Crawler;
+use Embed\Http\UrlPolicy;
 use Sheadawson\Linkable\Models\EmbeddedObject;
 use Sheadawson\Linkable\Tests\Stubs\LinkFieldTestController;
 use Sheadawson\Linkable\Tests\Stubs\StubHttpClient;
@@ -60,7 +61,19 @@ class EmbeddedObjectTest extends FunctionalTest
             ],
         ]);
 
-        Injector::inst()->registerService(new Embed(new Crawler($this->client)), Embed::class);
+        // embed/embed 4.5 checks each URL's host against its URL policy, with a DNS lookup, before the
+        // client sees the request. The hosts here are fictional, so they resolve to loopback, which
+        // the policy is told to allow; the stub client answers without connecting anywhere.
+        $crawler = new Crawler($this->client);
+        if (method_exists($crawler, 'setUrlPolicy')) {
+            $crawler->setUrlPolicy(
+                UrlPolicy::default()
+                    ->allowPrivateNetworks()
+                    ->withResolver(fn (string $host): array => ['127.0.0.1'])
+            );
+        }
+
+        Injector::inst()->registerService(new Embed($crawler), Embed::class);
     }
 
     public function testSetFromURLWithoutImageOrCode(): void
