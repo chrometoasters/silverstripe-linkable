@@ -66,8 +66,8 @@ jobs:
   # connects to MySQL as root; SapphireTest creates and drops its own
   # temporary databases. Any failure or error fails the job.
   #
-  # CMS 6.3 has only release candidates on Packagist, so the project allows
-  # RC stability; prefer-stable takes 6.3.0 by itself when it is tagged.
+  # The CMS 6.3 pairs install ~6.3.0 at stable stability (6.3.0 was tagged on
+  # 28 October 2026; until then the matrix allowed its release candidates).
   phpunit:
     name: phpunit (CMS ${{ matrix.cms }}, PHP ${{ matrix.php }})
     runs-on: ubuntu-24.04
@@ -77,12 +77,12 @@ jobs:
       matrix:
         include:
           - cms: '6.3'
-            recipe: '~6.3.0@rc'
-            stability: RC
+            recipe: '~6.3.0'
+            stability: stable
             php: '8.4'
           - cms: '6.3'
-            recipe: '~6.3.0@rc'
-            stability: RC
+            recipe: '~6.3.0'
+            stability: stable
             php: '8.5'
     services:
       mysql:
