@@ -72,10 +72,12 @@ class LinkField extends TextField
         $action = FormAction::create('doSaveLink', _t('Linkable.SAVE', 'Save'))
             ->setUseButtonTag('true');
 
+        // CMS 6 admin markup: the admin's FormAction template adds the btn class and renders the icon
+        // in a span hidden from screen readers
         if (!$this->isFrontend) {
             $action
-                ->addExtraClass('ss-ui-action-constructive')
-                ->setAttribute('data-icon', 'accept');
+                ->addExtraClass('btn-primary')
+                ->setIcon('save');
         }
 
         $link = null;

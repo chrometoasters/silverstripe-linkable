@@ -6,9 +6,11 @@ use Sheadawson\Linkable\Forms\LinkField;
 use Sheadawson\Linkable\Models\Link;
 use Sheadawson\Linkable\Tests\Stubs\LinkFieldTestController;
 use Sheadawson\Linkable\Tests\Stubs\LinkFormTestExtension;
+use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\Control\Director;
 use SilverStripe\Dev\FunctionalTest;
 use SilverStripe\View\Requirements;
+use SilverStripe\View\SSViewer;
 
 /**
  * Renders LinkField and EmbeddedObjectField on CMS 6 and drives the LinkField dialog actions over HTTP
@@ -93,6 +95,36 @@ class LinkFieldTest extends FunctionalTest
         $this->assertStringContainsString('<option value="Email"', $body);
         $this->assertStringNotContainsString('<option value="Phone"', $body, 'setAllowedTypes() limits the types');
         $this->assertStringContainsString('link-form-extended', $body, 'updateLinkForm is called');
+    }
+
+    public function testLinkFormSaveButtonUsesAdminButtonMarkup(): void
+    {
+        // The admin's themes, as AdminController::doInit() sets them for the dialog's request: their
+        // FormAction template adds the btn class and renders the icon in a span hidden from screen readers
+        SSViewer::set_themes(LeftAndMain::config()->uninherited('admin_themes'));
+
+        $response = $this->get(self::FIELD_URL . '/LinkFormHTML?LinkID=0');
+
+        $this->assertSame(200, $response->getStatusCode());
+        $matched = preg_match(
+            '/(<button\b[^>]*\bname="action_doSaveLink"[^>]*>)(.*?)<\/button>/s',
+            $response->getBody(),
+            $button
+        );
+        $this->assertSame(1, $matched, 'LinkFormHTML renders the Save button');
+        [, $openingTag, $content] = $button;
+
+        $this->assertSame(1, preg_match('/\sclass="([^"]*)"/', $openingTag, $class), 'The Save button has classes');
+        $classes = preg_split('/\s+/', trim($class[1]));
+        $this->assertContains('btn', $classes);
+        $this->assertContains('btn-primary', $classes);
+        $this->assertNotContains('ss-ui-action-constructive', $classes, 'No CMS 4 button class');
+        $this->assertStringNotContainsString('data-icon', $openingTag, 'No CMS 4 icon attribute');
+        $this->assertMatchesRegularExpression(
+            '/<span\b(?=[^>]*\baria-hidden="true")(?=[^>]*\bclass="[^"]*\bfont-icon-save\b)[^>]*>/',
+            $content,
+            'The save icon is a span hidden from screen readers'
+        );
     }
 
     public function testLinkFormHTMLForExistingLink(): void

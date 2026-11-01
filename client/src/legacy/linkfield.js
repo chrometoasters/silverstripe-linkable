@@ -118,7 +118,6 @@ $.entwine('ss', ($) => {
         url = `${url}&${formUrlParts[1]}`;
       }
       const holder = this.parents('.field:first');
-      this.parents('.middleColumn:first').html("<img src='framework/images/network-save.gif' />");
       holder.load(url, () => {
         form.addClass('changed');
         holder.replaceWith(holder.html());
