@@ -237,4 +237,21 @@ $param1 = Controller::curr()->getRequest()->requestVar('param1');
 
 ## Development
 
-Front end uses pre-processing and requires the use of `Yarn`.
+The admin JavaScript and styles in `client/src` are built into `client/dist` by webpack with
+[`@silverstripe/webpack-config`](https://github.com/silverstripe/webpack-config) 3, the configuration
+Silverstripe CMS 6's own modules use, on Node 24 (see `.nvmrc`) and Yarn 1. The built files are committed,
+so rebuild them after changing anything in `client/src`:
+
+```
+yarn install --frozen-lockfile
+yarn build
+```
+
+Without Node 24 installed, the same build runs in Docker from the module's folder:
+
+```
+docker run --rm -v "$PWD":/app -w /app node:24-bookworm-slim \
+  bash -c 'yarn install --frozen-lockfile && yarn build'
+```
+
+`yarn dev` builds unminified bundles with source maps for debugging; commit the output of `yarn build`.
