@@ -2,6 +2,9 @@
 
 namespace Sheadawson\Linkable\Tests;
 
+use DOMDocument;
+use DOMElement;
+use DOMXPath;
 use Sheadawson\Linkable\Forms\LinkField;
 use Sheadawson\Linkable\Models\Link;
 use Sheadawson\Linkable\Tests\Stubs\LinkFieldTestController;
@@ -55,7 +58,7 @@ class LinkFieldTest extends FunctionalTest
 
         // The hidden input the dialog script binds to (input.link), and the dialog's buttons and container
         $this->assertMatchesRegularExpression('/<input[^>]+name="MyLinkID"[^>]+class="[^"]*\blink\b/', $html);
-        $this->assertStringContainsString("class='linkfield-button btn btn-primary font-icon-plus-circled '", $html);
+        $this->assertStringContainsString("class='linkfield-button btn btn-primary'", $html);
         $this->assertStringContainsString("<div class='linkfield-dialog'></div>", $html);
 
         // EmbeddedObjectField: the inspect button and its source URL input
@@ -67,6 +70,46 @@ class LinkFieldTest extends FunctionalTest
         $css = implode(' ', array_keys(Requirements::backend()->getCSS()));
         $this->assertStringContainsString('silverstripe-linkable/client/dist/js/bundle.js', $javascript);
         $this->assertStringContainsString('silverstripe-linkable/client/dist/styles/bundle.css', $css);
+    }
+
+    public function testAddLinkButtonIconIsHiddenFromScreenReaders(): void
+    {
+        // CMS 6 draws a button's icon on a span hidden from screen readers (admin's FormAction template,
+        // framework's GridFieldAddNewButton). A font-icon class on the button itself draws the glyph as the
+        // button's own ::before, whose character then becomes part of the button's accessible name.
+        $html = (string) LinkFieldTestController::create()->Form()->forTemplate();
+
+        $button = $this->element(
+            $html,
+            '//button[contains(concat(" ", normalize-space(@class), " "), " linkfield-button ")]'
+        );
+        $classes = $this->classes($button);
+        $this->assertContains('btn', $classes);
+        $this->assertContains('btn-primary', $classes);
+        $this->assertSame([], array_values(preg_grep('/^font-icon-/', $classes)), 'No icon class on the button itself');
+
+        $spans = $button->getElementsByTagName('span');
+        $this->assertSame(2, $spans->length, 'An icon span and a title span');
+        [$icon, $title] = [$spans->item(0), $spans->item(1)];
+        $this->assertSame(['btn__icon', 'font-icon-plus-circled'], $this->classes($icon));
+        $this->assertSame('true', $icon->getAttribute('aria-hidden'), 'The icon is hidden from screen readers');
+        $this->assertSame('', $icon->textContent);
+        $this->assertSame(['btn__title'], $this->classes($title));
+        $this->assertSame('Add Link', $title->textContent);
+        $this->assertSame('Add Link', trim($button->textContent), 'The button\'s text is its title alone');
+    }
+
+    public function testFrontendAddLinkButtonKeepsItsMarkup(): void
+    {
+        $form = LinkFieldTestController::create()->Form();
+        $form->Fields()->dataFieldByName('MyLinkID')->setIsFrontend(true);
+        $html = (string) $form->forTemplate();
+
+        $this->assertStringContainsString(
+            "<button href='#' class='linkfield-button btn btn-primary font-icon-plus-circled '>Add Link</button>",
+            $html
+        );
+        $this->assertStringNotContainsString('btn__icon', $html);
     }
 
     public function testFieldWithLinkRendersLinkAndEditButtons(): void
@@ -187,6 +230,38 @@ class LinkFieldTest extends FunctionalTest
         $this->assertSame(200, $response->getStatusCode());
         $this->assertStringContainsString('font-icon-plus-circled', $response->getBody());
         $this->assertStringNotContainsString('linkfield-remove-button', $response->getBody());
+    }
+
+    /**
+     * The one element an XPath query finds in an HTML fragment.
+     *
+     * @param string $html
+     * @param string $xpath
+     * @return DOMElement
+     */
+    private function element(string $html, string $xpath): DOMElement
+    {
+        $document = new DOMDocument();
+        $errors = libxml_use_internal_errors(true);
+        $document->loadHTML('<?xml encoding="utf-8"?><html><body>' . $html . '</body></html>');
+        libxml_clear_errors();
+        libxml_use_internal_errors($errors);
+
+        $found = (new DOMXPath($document))->query($xpath);
+        $this->assertSame(1, $found->length, "One element matches $xpath");
+
+        return $found->item(0);
+    }
+
+    /**
+     * An element's class tokens, in order.
+     *
+     * @param DOMElement $element
+     * @return string[]
+     */
+    private function classes(DOMElement $element): array
+    {
+        return preg_split('/\s+/', trim($element->getAttribute('class')), -1, PREG_SPLIT_NO_EMPTY);
     }
 
     /**

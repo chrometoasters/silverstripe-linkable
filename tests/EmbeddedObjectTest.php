@@ -2,6 +2,8 @@
 
 namespace Sheadawson\Linkable\Tests;
 
+use DOMDocument;
+use DOMXPath;
 use Embed\Embed;
 use Embed\Http\Crawler;
 use Embed\Http\UrlPolicy;
@@ -151,6 +153,35 @@ class EmbeddedObjectTest extends FunctionalTest
         $this->assertMatchesRegularExpression('/name="Embed\[title\]"[^>]*value="Stored video"/', $html);
         $this->assertStringContainsString('name="Embed[width]"', $html);
         $this->assertStringContainsString('<img src="https://media.example.com/thumb.jpg" />', $html);
+    }
+
+    public function testInspectButtonUsesAdminButtonMarkup(): void
+    {
+        // CMS 6's outlined secondary button, as framework gives the action beside the search input of
+        // GridFieldAddExistingAutocompleter, in place of CMS 3 and 4's ss-ui-button classes. It stays an
+        // input: the script swaps its value for "Loading" while the URL is looked up.
+        $html = (string) LinkFieldTestController::create()->Form()->forTemplate();
+
+        $document = new DOMDocument();
+        $errors = libxml_use_internal_errors(true);
+        $document->loadHTML('<?xml encoding="utf-8"?><html><body>' . $html . '</body></html>');
+        libxml_clear_errors();
+        libxml_use_internal_errors($errors);
+        $buttons = (new DOMXPath($document))->query(
+            '//*[contains(concat(" ", normalize-space(@class), " "), " embeddedObjectLoad ")]'
+        );
+
+        $this->assertSame(1, $buttons->length, 'The field renders one Inspect button');
+        $button = $buttons->item(0);
+        $this->assertSame('input', $button->nodeName);
+        $this->assertSame('button', $button->getAttribute('type'));
+        $this->assertSame('Inspect', $button->getAttribute('value'));
+        $this->assertSame('LinkFieldTestController/Form/field/Embed/update', $button->getAttribute('data-href'));
+        $this->assertSame(
+            ['embeddedObjectLoad', 'btn', 'btn-outline-secondary'],
+            preg_split('/\s+/', trim($button->getAttribute('class')), -1, PREG_SPLIT_NO_EMPTY)
+        );
+        $this->assertStringNotContainsString('ss-ui-', $html, 'No CMS 3 or 4 button classes');
     }
 
     public function testUpdateActionInspectsURL(): void
