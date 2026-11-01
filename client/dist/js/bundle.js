@@ -181,8 +181,6 @@ _jquery2.default.entwine('ss', function ($) {
           }
         };
 
-        // CMS 6's admin no longer gives the global jQuery the jquery.form plugin (ajaxSubmit), so the
-        // dialog form is posted with $.ajax, adding the action button the server dispatches on
         var $linkForm = $(this);
         var data = $linkForm.serializeArray();
         var $action = $linkForm.find('button[name^="action_"], input[type="submit"][name^="action_"]').first();
@@ -234,7 +232,6 @@ _jquery2.default.entwine('ss', function ($) {
         url = url + '&' + formUrlParts[1];
       }
       var holder = this.parents('.field:first');
-      this.parents('.middleColumn:first').html("<img src='framework/images/network-save.gif' />");
       holder.load(url, function () {
         form.addClass('changed');
         holder.replaceWith(holder.html());
