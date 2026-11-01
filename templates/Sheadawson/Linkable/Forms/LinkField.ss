@@ -4,8 +4,10 @@
 	$LinkObject &nbsp;
 	<button href='#' class='linkfield-button btn btn-primary'><%t Linkable.EDIT 'Edit' %></button>
 	<button href='#' class='linkfield-remove-button btn btn-danger '><%t Linkable.REMOVE 'Remove' %></button>
-<% else %>
+<% else_if $IsFrontend %>
 	<button href='#' class='linkfield-button btn btn-primary font-icon-plus-circled '><%t Linkable.ADDLINK 'Add Link' %></button>
+<% else %>
+	<button href='#' class='linkfield-button btn btn-primary'><span aria-hidden='true' class='btn__icon font-icon-plus-circled'></span><span class='btn__title'><%t Linkable.ADDLINK 'Add Link' %></span></button>
 <% end_if %>
 
 <div class='linkfield-dialog'></div>
